@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo App</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 20px auto; padding: 0 20px; }
+        form { display: flex; margin: 20px 0; }
+        input { flex-grow: 1; padding: 10px; font-size: 16px; }
+        button { padding: 10px 15px; margin-left: 10px; cursor: pointer; }
+        ul { list-style: none; padding: 0; }
+        li { 
+            padding: 12px; 
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        .todo-item { flex-grow: 1; display: flex; align-items: center; }
+        .completed { text-decoration: line-through; color: #888; }
+        .edit-input { flex-grow: 1; padding: 8px; margin: 0 10px; }
+        .actions { margin-left: 10px; }
+        .actions button { margin-left: 5px; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>My Todo List</h1>
+    
+    <form method="POST" action="/add" onsubmit="this.querySelector('button').disabled = true;">
+        <input type="text" name="title" placeholder="Add new todo..." required>
+        <button type="submit">Add</button>
+    </form>
+
+    <ul>
+        {% for todo in todos %}
+        <li>
+            <div class="todo-item">
+                <input type="checkbox" 
+                       onchange="this.form.submit()"
+                       {% if todo.completed %}checked{% endif %}>
+                
+                {% if todo.editing %}
+                <form method="POST" action="/update/{{ todo.id }}" style="display: flex; flex-grow: 1;">
+                    <input type="hidden" name="action" value="edit">
+                    <input type="text" class="edit-input" name="title" value="{{ todo.title }}" autofocus>
+                    <button type="submit">Save</button>
+                </form>
+                {% else %}
+                <span class="{% if todo.completed %}completed{% endif %}" 
+                      style="flex-grow: 1; margin: 0 10px;">
+                    {{ todo.title }}
+                </span>
+                {% endif %}
+            </div>
+            
+            <div class="actions">
+                <form method="POST" action="/update/{{ todo.id }}" style="display: inline;">
+                    <input type="hidden" name="action" value="toggle">
+                    <button type="submit">Toggle</button>
+                </form>
+                <form method="POST" action="/update/{{ todo.id }}" style="display: inline;">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        // 防止表单重复提交
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                this.querySelector('button[type="submit"]').disabled = true;
+            });
+        });
+    </script>
+</body>
+</html>

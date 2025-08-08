@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo App</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .todo { display: flex; align-items: center; margin: 10px 0; }
+        .completed { text-decoration: line-through; color: #888; }
+        form { display: inline; }
+    </style>
+</head>
+<body>
+    <h1>Todo List</h1>
+    
+    <form method="POST" action="/add">
+        <input type="text" name="title" placeholder="New todo" required>
+        <button type="submit">Add</button>
+    </form>
+    
+    <div id="todos">
+        {% for todo in todos %}
+        <div class="todo {% if todo.completed %}completed{% endif %}">
+            <form method="POST" action="/update/{{ todo.id }}">
+                <input type="checkbox" name="completed" {% if todo.completed %}checked{% endif %} 
+                       onchange="this.form.submit()">
+                {{ todo.title }}
+            </form>
+            <form method="POST" action="/delete/{{ todo.id }}">
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

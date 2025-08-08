@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo App</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: 0 auto; }
+        form { display: flex; margin: 20px 0; }
+        input { flex-grow: 1; padding: 8px; }
+        button { padding: 8px 16px; margin-left: 5px; }
+        ul { list-style: none; padding: 0; }
+        li { 
+            padding: 12px; 
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        .todo-text {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .edit-input {
+            flex-grow: 1;
+            padding: 5px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Todo List</h1>
+    
+    <form method="POST" action="/add">
+        <input type="text" name="title" placeholder="Add new todo..." required>
+        <button type="submit">Add</button>
+    </form>
+
+    <ul>
+        {% for todo in todos %}
+        <li>
+            <!-- 完成状态复选框 -->
+            <input type="checkbox" 
+                   onchange="toggleComplete({{ todo.id }}, this.checked)"
+                   {% if todo.completed %}checked{% endif %}>
+            
+            <!-- 待办事项文本 (点击可编辑) -->
+            <span class="todo-text {% if todo.completed %}completed{% endif %}" 
+                  ondblclick="startEdit(this, {{ todo.id }})">
+                {{ todo.title }}
+            </span>
+            
+            <!-- 编辑输入框 (默认隐藏) -->
+            <input type="text" 
+                   class="edit-input" 
+                   value="{{ todo.title }}"
+                   style="display: none;"
+                   onkeypress="handleEditKeypress(event, {{ todo.id }})">
+            
+            <!-- 删除按钮 -->
+            <button onclick="deleteTodo({{ todo.id }})">Delete</button>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        // 切换完成状态
+        function toggleComplete(id, completed) {
+            fetch(`/todos/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ completed: completed })
+            }).then(() => window.location.reload());
+        }
+
+        // 删除待办事项
+        function deleteTodo(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                fetch(`/todos/${id}`, {
+                    method: 'DELETE'
+                }).then(() => window.location.reload());
+            }
+        }
+
+        // 开始编辑
+        function startEdit(element, id) {
+            const textSpan = element;
+            const inputField = element.nextElementSibling;
+            
+            textSpan.style.display = 'none';
+            inputField.style.display = 'block';
+            inputField.focus();
+        }
+
+        // 处理编辑输入 (按Enter键保存)
+        function handleEditKeypress(event, id) {
+            if (event.key === 'Enter') {
+                const newTitle = event.target.value;
+                fetch(`/todos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: newTitle })
+                }).then(() => window.location.reload());
+            }
+        }
+    </script>
+</body>
+</html>
+
